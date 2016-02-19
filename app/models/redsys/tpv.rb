@@ -37,7 +37,7 @@ module Redsys
     end
 
     def merchant_params
-      "#{Base64.strict_encode64(merchant_params_json)}"
+      "#{strict_encode64(merchant_params_json)}"
     end
 
     def merchant_params_json
@@ -57,7 +57,7 @@ module Redsys
     end
 
     def merchant_signature_3des
-      Base64.strict_encode64(encrypt_3DES(@order, Base64.strict_decode64(Rails.configuration.redsys_rails[:sha_256_key])))
+      strict_encode64(encrypt_3DES(@order, Base64.strict_decode64(Rails.configuration.redsys_rails[:sha_256_key])))
     end
 
     def merchant_signature
@@ -66,9 +66,52 @@ module Redsys
       encrypt_mac256(merchant_params, key)
     end
 
+    # TODO: remove this duplicated functions. They are here because I was unable to access the original functions from the notifications controller, not even using module def
+    def self.call_strict_encode64(bin)
+      Base64.encode64(bin).tr("\n",'')
+    end
+    def self.call_urlsafe_encode64(bin)
+      call_strict_encode64(bin).tr("+/", "-_")
+    end
+    def self.call_strict_decode64(str)
+      unless str.include?("\n")
+        Base64.decode64(str)
+      else
+        raise(ArgumentError,"invalid base64")
+      end
+    end
+    def self.call_urlsafe_decode64(str)
+      call_strict_decode64(str.tr("-_", "+/"))
+    end
+
     private
 
-      def encrypt_mac256(data, key)
+    #TODO: Remove when upgraded to a Base64 lib that supports m0 for encoding according to RFC 4648
+    def strict_encode64(bin)
+      Base64.encode64(bin).tr("\n",'')
+#          [bin].pack("m0")
+    end
+    def urlsafe_encode64(bin)
+      strict_encode64(bin).tr("+/", "-_")
+    end
+    #TODO: Remove when upgraded to a Base64 lib that supports m0 for encoding according to RFC 4648
+    def strict_decode64(str)
+      unless str.include?("\n")
+        Base64.decode64(str)
+      else
+        raise(ArgumentError,"invalid base64")
+      end
+#      str.unpack("m0").first
+    end
+    def urlsafe_decode64(str)
+      strict_decode64(str.tr("-_", "+/"))
+    end
+
+    def urlsafe_encrypt_mac256(data, key)
+      urlsafe_encode64(OpenSSL::HMAC.digest(OpenSSL::Digest.new('sha256'), key, data))
+    end
+
+    def encrypt_mac256(data, key)
         Base64.strict_encode64(OpenSSL::HMAC.digest(OpenSSL::Digest.new('sha256'), key, data))
       end
     

@@ -11,7 +11,7 @@ module Redsys
       end
 
       def add_routes
-        route "post 'redsys/notification' => 'redsys/notifications#notification', as: :redsys_notification"
+        route "post 'redsys/notification' => 'redsys/notifications#notification', :as => :redsys_notification"
       end
     end
   end
