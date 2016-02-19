@@ -9,8 +9,12 @@ Gem::Specification.new do |spec|
   spec.authors       = ["guzmanweb", "Asier Azaceta"]
   spec.email         = ["carlos@guzmanweb.com", "asier.azaceta@techabout.es"]
   spec.summary       = %q{A Ruby gem for communicating with the payment platform of Redsys}
-  spec.homepage      = ""
+  spec.homepage      = "https://github.com/rockandror/redsys-rails"
   spec.license       = "MIT"
+  spec.description = <<-EOF
+  redsys-rails is a gem for integrating the Redsys Virtual Payments Gateway/Terminal (TPV).
+  Mainly used by Spanish banks.
+  EOF
 
   spec.files         = `git ls-files -z`.split("\x0")
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
