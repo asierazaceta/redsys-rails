@@ -4,10 +4,10 @@ require 'json'
 require 'rails-i18n'
 
 module Redsys
+
   class Tpv
     attr_accessor :amount, :language, :order, :currency, :merchant_code, :terminal,
-                  :transaction_type, :merchant_url, :url_ok, :url_ko, :sha1, :signature
-
+                  :transaction_type, :merchant_url, :url_ok, :url_ko, :sha1, :signature, :merchant_name
     def self.tpv_url
       Rails.configuration.redsys_rails[:url]
     end
@@ -82,7 +82,13 @@ module Redsys
     end
 
     def merchant_signature_3des
-      strict_encode64(encrypt_3DES(@order, Base64.strict_decode64(Rails.configuration.redsys_rails[:sha_256_key])))
+      strict_encode64(encrypt_3DES(@order, urlsafe_decode64(Rails.configuration.redsys_rails[:sha_256_key])))
+    end
+
+    def calculate_key
+      # support function for getting the key both at sending and at reception
+      @key = urlsafe_decode64(Rails.configuration.redsys_rails[:sha_256_key])
+      @key = encrypt_3DES(@order, @key)
     end
 
     def merchant_signature
@@ -90,7 +96,7 @@ module Redsys
       encrypt_mac256(merchant_params, @key)
     end
 
-    def self.response_signature(response_data)
+    def response_signature(response_data)
       # For checking the received signature from the gateway
       calculate_key
       urlsafe_encrypt_mac256(response_data, @key)
@@ -115,16 +121,6 @@ module Redsys
     end
 
     private
-
-      def calculate_key
-        # support function for getting the key both at sending and at reception
-        @key = urlsafe_decode64(Rails.configuration.redsys_rails[:sha_256_key])
-        @key = encrypt_3DES(@order, @key)
-      end
-
-      def urlsafe_encrypt_mac256(data, key)
-        urlsafe_encode64(OpenSSL::HMAC.digest(OpenSSL::Digest.new('sha256'), key, data))
-      end
 
     #TODO: Remove when upgraded to a Base64 lib that supports m0 for encoding according to RFC 4648
     def strict_encode64(bin)
@@ -152,7 +148,7 @@ module Redsys
     end
 
     def encrypt_mac256(data, key)
-        Base64.strict_encode64(OpenSSL::HMAC.digest(OpenSSL::Digest.new('sha256'), key, data))
+        strict_encode64(OpenSSL::HMAC.digest(OpenSSL::Digest.new('sha256'), key, data))
       end
     
       def encrypt_3DES(data, key)

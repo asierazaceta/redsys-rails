@@ -4,7 +4,7 @@ $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
 require 'redsys-rails/version'
 
 Gem::Specification.new do |spec|
-  spec.name          = "redsys-rails-1.8.7"
+  spec.name          = "redsys-rails"
   spec.version       = RedsysRails::Rails::VERSION
   spec.authors       = ["guzmanweb", "Asier Azaceta"]
   spec.email         = ["carlos@guzmanweb.com", "asier.azaceta@techabout.es"]
